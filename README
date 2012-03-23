@@ -1,0 +1,46 @@
+EP (easy peasy) implementation of MAX31855 library to be used with HI-TECH PICC18.
+
+--Disclaimer and license--
+You can do with this code whatever you like, but remember, always give credi where credit is due.
+You can not hold me liable for anything this code does or does not do.
+Use it at your own risk. If you do not understand what this code is about,
+do not even look at it. Be warned, use of this code is sole your responsibility, not mine!
+No support is provided in any form.
+This is first thing I have ever done on PIC and with PICC18.
+--Disclaimer and license end--
+
+How to use it (unless you are scared off by previous section of this README)
+
+1) #include "max31855.h"
+2) edit max31855.h and replace MAX31855_CS_LAT and MAX31855_CS_TRIS with definition
+   for pin you are going to use as CS
+3) somewhere in your code initialize SPI, like for example HW SPI with PICC18 peripherals
+   library OpenSPI(SPI_FOSC_64,MODE_01,SMPEND), along the way, read the
+   manual of MAX31855, regarding what speed and what type of SPI it talks.
+4) setup max31855 library by calling setupMAX31855(ReadSPI). The argument to setupMAX31855()
+   function is pointer to the function that reads a byte from SPI, in this case it is PICC18
+   HW SPI function ReadSPI. Function has to return unsigned char and have no parameters. Besides
+   this function must not touch CS line of MAX31855
+5) if everything is correct, you should be able to read your temperature now like this:
+   float temperature = readCelsius() please note that temperature is returned in degrees Celsius
+   and both negative and positive values are returned. If there is a fault, returned temperature
+   is 9999.0, which is way out of working range of the chip and that should serve as a clue to
+   you.
+
+Besides reading thermocouple temperature, you can as well read cold junction temperature like
+this:
+float cjtemperature = readCJCelsius();
+And if you manage to hit those dreaded 9999.0 degrees, you can find out what exactly is wrong
+with your MAX31855 by reading status of chip like this:
+char max_status = readStatus();
+if (max_status & SCV_FAULT)
+	printf("Your t-couple is shorted to VCC!\n");
+if (max_status & SCG_FAULT)
+	printf("Your t-couple is shorted to GND!\n");
+if (max_status & OC_FAULT)
+	printf("You do not have any t-couple! There is open circuit!\n")
+
+I tested my MAX31855 with breakout board from http://www.tautic.com and PIC18F25K20 as found on
+Amicus18 board by http://www.myamicus.co.uk/ your mileage will for sure vary as you go.
+
+Good luck, may the force be with you, read the datasheets and read the sources!
